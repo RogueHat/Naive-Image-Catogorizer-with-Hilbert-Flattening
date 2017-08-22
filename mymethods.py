@@ -1,9 +1,12 @@
 import numpy
 import hilbert_curve
+#~ from multiprocessing.pool import ThreadPool
+
 
 
 side = 32
 newshape = side*side
+#~ p = ThreadPool()
 
 hilbert_indexs = range(0,newshape)
 hilbert_map = map(lambda x: hilbert_curve.d2xy(newshape, x), hilbert_indexs)

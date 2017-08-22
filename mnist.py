@@ -27,6 +27,9 @@ import scipy.misc as tools
 import numpy
 from six.moves import xrange  # pylint: disable=redefined-builtin
 
+from multiprocessing.pool import ThreadPool
+from hilbert_tool import hilbert_tool
+
 from tensorflow.contrib.learn.python.learn.datasets import base
 from tensorflow.python.framework import dtypes
 from tensorflow.python.framework import random_seed
@@ -34,6 +37,8 @@ from tensorflow.python.framework import random_seed
 # CVDF mirror of http://yann.lecun.com/exdb/mnist/
 SOURCE_URL = 'https://storage.googleapis.com/cvdf-datasets/mnist/'
 
+p = ThreadPool()
+ht = hilbert_tool(32)
 
 def _read32(bytestream):
   dt = numpy.dtype(numpy.uint32).newbyteorder('>')
@@ -65,7 +70,7 @@ def extract_images(f):
     buf = bytestream.read(rows * cols * num_images)
     data = numpy.frombuffer(buf, dtype=numpy.uint8)
     data = data.reshape(num_images, rows, cols) 
-    data = map(lambda idx: tools.imresize(data[idx],(32,32)), range(0,num_images))
+    data = p.map(lambda idx: tools.imresize(data[idx],(32,32)), range(0,num_images))
     data = numpy.array(data, dtype=numpy.uint8)
     data = data.reshape(num_images, 32, 32, 1)
     return data
@@ -146,11 +151,10 @@ class DataSet(object):
 			#~ images.shape[1] * images.shape[2])
 		
         images = images.reshape(images.shape[0], images.shape[1] , images.shape[2])
-        images = map(lambda img: mymethods.arrange(img), images)
-        images = numpy.array(images)
-        print(images.shape)
+        #~ images = p.map(lambda img: ht.hilbert_flatten(img), images)
+        #~ images = numpy.array(images)
         
-        #~ images = images.reshape(images.shape[0], images.shape[1] * images.shape[2])
+        images = images.reshape(images.shape[0], images.shape[1] * images.shape[2])
 			
       if dtype == dtypes.float32:
         # Convert from [0, 255] -> [0.0, 1.0].
